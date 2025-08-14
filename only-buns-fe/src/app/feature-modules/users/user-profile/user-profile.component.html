@@ -30,7 +30,67 @@
       <button (click)="searchUserByEmail()">Search</button>
     </div>
 
-    <h3>Your Following:</h3>
+    <!-- >>> Change Password (Reactive Forms) <<< -->
+    <div class="mt-4" style="margin-top:16px;">
+      <button type="button" (click)="togglePasswordForm()">
+        {{ passwordFormVisible ? 'Cancel' : 'Change Password' }}
+      </button>
+
+      <div *ngIf="passwordFormVisible" class="mt-3" style="margin-top:12px; border:1px solid #ddd; padding:12px; border-radius:8px;">
+        <form [formGroup]="passwordForm" (ngSubmit)="onSubmitPassword()">
+          <!-- Current password -->
+          <div style="margin-bottom:8px;">
+            <label>Current password</label><br>
+            <input type="password" formControlName="currentPassword" />
+            <div class="alert alert-danger"
+                 *ngIf="passwordForm.get('currentPassword')?.touched && passwordForm.get('currentPassword')?.invalid">
+              Required field.
+            </div>
+          </div>
+
+          <!-- New password -->
+          <div style="margin-bottom:8px;">
+            <label>New password</label><br>
+            <input type="password" formControlName="newPassword" />
+            <div class="alert alert-danger"
+                 *ngIf="passwordForm.get('newPassword')?.touched && passwordForm.get('newPassword')?.errors?.['required']">
+              Required field.
+            </div>
+            <div class="alert alert-danger"
+                 *ngIf="passwordForm.get('newPassword')?.touched && (passwordForm.get('newPassword')?.errors?.['minlength'] || passwordForm.get('newPassword')?.errors?.['maxlength'])">
+              Password must be 8–32 characters long.
+            </div>
+            <div class="alert alert-danger"
+                 *ngIf="passwordForm.get('newPassword')?.touched && passwordForm.get('newPassword')?.errors?.['pattern']">
+              Must contain at least one letter and one number.
+            </div>
+          </div>
+
+          <!-- Confirm new password -->
+          <div style="margin-bottom:8px;">
+            <label>Confirm new password</label><br>
+            <input type="password" formControlName="confirmNewPassword" />
+            <div class="alert alert-danger"
+                 *ngIf="passwordForm.get('confirmNewPassword')?.touched && passwordForm.errors?.['mismatch']">
+              Passwords do not match.
+            </div>
+          </div>
+
+          <button type="submit" [disabled]="passwordForm.invalid || submittingPassword">Save</button>
+          <span *ngIf="submittingPassword" style="margin-left:8px;">Saving…</span>
+
+          <div *ngIf="passwordNotification"
+               class="alert"
+               [ngClass]="{'alert-success': passwordNotification.msgType==='success', 'alert-danger': passwordNotification.msgType==='error'}"
+               style="margin-top:8px;">
+            {{ passwordNotification.msgBody }}
+          </div>
+        </form>
+      </div>
+    </div>
+    <!-- <<< /Change Password (Reactive Forms) >>> -->
+
+    <h3 style="margin-top:16px;">Your Following:</h3>
     <ul>
       <li *ngFor="let follow of following">
         {{ follow.followedUsername }}

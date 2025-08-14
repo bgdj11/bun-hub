@@ -255,5 +255,21 @@ public class UserService {
         userRepository.save(user);
 
     }
+
+    public void changePassword(Long userId, String currentPassword, String newPassword) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with ID: " + userId));
+
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new IllegalArgumentException("Pogrešna trenutna lozinka.");
+        }
+
+        if (newPassword == null || newPassword.length() < 8) {
+            throw new IllegalArgumentException("Nova lozinka mora imati najmanje 8 karaktera.");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword)); // User.setPassword već update-uje lastPasswordResetDate
+        userRepository.save(user);
+    }
 }
 

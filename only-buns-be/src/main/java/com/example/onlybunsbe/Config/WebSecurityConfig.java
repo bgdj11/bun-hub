@@ -75,7 +75,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/api/posts/ad-eligibility/**").hasRole("ADMIN")
                         .requestMatchers("/api/posts/**").permitAll()
-                        .requestMatchers("api/user/**").authenticated()
+                        .requestMatchers("/api/user/**").authenticated()
                         .requestMatchers("/api/likes/**").authenticated()// `ROLE_USER` će se automatski prepoznati
                         .requestMatchers("/api/comments/**").authenticated() // Više uloga, korisnik mora imati barem jednu
                         .requestMatchers("/h2-console/**").permitAll()

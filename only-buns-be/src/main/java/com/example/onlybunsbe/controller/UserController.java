@@ -15,6 +15,7 @@ import com.example.onlybunsbe.model.GroupChat;
 import com.example.onlybunsbe.model.User;
 import com.example.onlybunsbe.service.GroupChatService;
 import com.example.onlybunsbe.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,6 +24,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import com.example.onlybunsbe.DTO.ChangePasswordRequest;
+import org.springframework.security.core.Authentication;
+import com.example.onlybunsbe.util.TokenUtils;
 
 
 // Primer kontrolera cijim metodama mogu pristupiti samo autorizovani korisnici
@@ -39,6 +43,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private TokenUtils tokenUtils;
 
     // Za pristup ovoj metodi neophodno je da ulogovani korisnik ima ADMIN ulogu
     // Ukoliko nema, server ce vratiti gresku 403 Forbidden
@@ -134,4 +141,35 @@ public class UserController {
         UserDTO userDTO = UserMapper.toDTO(user);
         return ResponseEntity.ok(userDTO);
     }
+
+    @PutMapping("/user/password")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest req,
+                                            HttpServletRequest request) {
+        try {
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token nije prosleđen.");
+            }
+            String token = authHeader.substring(7);
+            String email = tokenUtils.getEmailFromToken(token);
+
+            User user = userService.findByEmail(email);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Korisnik nije pronađen.");
+            }
+
+            if (!req.getNewPassword().equals(req.getConfirmNewPassword())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Lozinke se ne poklapaju.");
+            }
+
+            userService.changePassword(user.getId(), req.getCurrentPassword(), req.getNewPassword());
+
+            return ResponseEntity.ok(Map.of("message", "Lozinka uspešno promenjena."));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Došlo je do greške.");
+        }
+    }
+
 }

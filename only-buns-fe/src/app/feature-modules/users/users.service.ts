@@ -52,14 +52,18 @@ export class UserService {
     return this.apiService.get(url);
   }
 
+  changePassword(payload: {
+    currentPassword: string;
+    newPassword: string;
+    confirmNewPassword: string;
+  }): Observable<any> {
+    return this.apiService.put(`${this.apiBase}/user/password`, payload);
+  }
+
+
   // Preuzimanje korisnika prema ID
   getUserById(userId: number): Observable<any> {
     return this.apiService.get(`http://localhost:8080/api/user/${userId}`);
-  }
-
-  // Promena lozinke
-  changePassword(userId: number, newPassword: string): Observable<any> {
-    return this.apiService.post(`http://localhost:8080/api/user/${userId}/change-password`, { password: newPassword });
   }
 
   // Ažuriranje adrese korisnika
