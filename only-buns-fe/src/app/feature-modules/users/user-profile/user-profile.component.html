@@ -2,24 +2,41 @@
   <h1>{{ user?.firstName }} {{ user?.lastName }}</h1>
   <p>Email: {{ user?.email }}</p>
 
+  <!-- Followers header (uvek vidljivo) -->
+  <div class="followers-header" style="display:flex; gap:.5rem; align-items:center; margin:.5rem 0;">
+    <h3 style="margin:0;">Followers: {{ followerCount }}</h3>
+    <button type="button" (click)="toggleFollowers()">
+      {{ showFollowers ? 'Hide' : 'Show' }}
+    </button>
+  </div>
+
+  <!-- Lista pratilaca (izgleda isto kao Following) -->
+  <div *ngIf="showFollowers" class="followers-list">
+    <ul>
+      <li *ngFor="let f of followers">
+        <a [routerLink]="['/profile', f.followerId]">{{ f.followerUsername }}</a>
+      </li>
+      <li *ngIf="!followers?.length"><em>No followers yet.</em></li>
+    </ul>
+  </div>
+
   <!-- Current User Section -->
   <div *ngIf="isCurrentUserProfile">
     <h2>Your Profile</h2>
     <p>Address: {{ user?.address }}</p>
 
-    <!-- Search User by Email -->
     <div>
       <input type="text" [(ngModel)]="emailToSearch" placeholder="Enter email to search" />
       <button (click)="searchUserByEmail()">Search</button>
     </div>
 
-    <!-- Your Following List -->
     <h3>Your Following:</h3>
     <ul>
       <li *ngFor="let follow of following">
         {{ follow.followedUsername }}
         <button (click)="unfollowUser(follow.followedId)">Unfollow</button>
       </li>
+      <li *ngIf="!following?.length"><em>Not following anyone yet.</em></li>
     </ul>
   </div>
 
@@ -30,13 +47,11 @@
     <button (click)="followUser()">Follow</button>
   </div>
 
-  <!-- Post Component -->
   <div class="user-posts">
     <h3>{{ isCurrentUserProfile ? 'Your Posts' : user?.username + "'s Posts" }}</h3>
     <app-post [posts]="posts"></app-post>
   </div>
 
-  <!-- Success/Error Messages -->
   <div *ngIf="followSuccess" class="alert alert-info">{{ followSuccess }}</div>
   <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
 </div>
