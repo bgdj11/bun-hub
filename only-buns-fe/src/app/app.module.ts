@@ -20,6 +20,7 @@ import { NearbyPostsComponent } from './feature-modules/posts/nearby-posts/nearb
 import {TrendsComponent} from './feature-modules/trends/trends.component';
 import {AnalyticsComponent} from './feature-modules/analytics/analytics.component';
 import { UserProfileComponent} from './feature-modules/users/user-profile/user-profile.component';
+import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 
 @NgModule({
     declarations: [
@@ -46,6 +47,7 @@ import { UserProfileComponent} from './feature-modules/users/user-profile/user-p
     AnalyticsComponent,
     UserProfileComponent,
     PostComponent,
+    LeafletModule,
   ],
     providers: [
         {

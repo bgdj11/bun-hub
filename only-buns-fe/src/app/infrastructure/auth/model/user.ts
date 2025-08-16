@@ -1,4 +1,5 @@
 import {GroupChatMember} from '../../../shared/model/groupChatMember';
+import { Location } from '../../../shared/model/location';
 
 export interface User {
   id: number;                     // ID korisnika
@@ -6,7 +7,7 @@ export interface User {
   username: string;               // Korisničko ime
   firstName: string;              // Ime
   lastName: string;               // Prezime
-  address?: string;               // Adresa (opciono)
+  location?: Location;
   isActive: boolean;              // Da li je korisnik aktivan (enabled)
   registeredAt: Date;             // Datum registracije (lastLoginDate)
   role: string;                   // Uloga korisnika

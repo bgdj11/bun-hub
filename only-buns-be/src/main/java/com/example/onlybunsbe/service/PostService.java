@@ -12,7 +12,7 @@ import com.example.onlybunsbe.repository.*;
 import com.example.onlybunsbe.dtomappers.PostMapper;
 import com.example.onlybunsbe.model.Comment;
 import com.example.onlybunsbe.model.Like;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,6 +24,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -190,6 +191,52 @@ public class PostService {
         );
 
         return postMapper.toPostDTO(updatedPost);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PostDTO> findPostsNearby(double centerLat, double centerLng, double radiusKm) {
+        List<Post> all = postRepository.findAll(); // optimizuj po potrebi (specifikacija/SQL)
+        double rKm = radiusKm > 0 ? radiusKm : 5.0;
+
+        List<PostDTO> res = all.stream()
+                .filter(p -> p.getLocation() != null)
+                .filter(p -> {
+                    var loc = p.getLocation();
+                    double d = haversineKm(centerLat, centerLng, loc.getLatitude(), loc.getLongitude());
+                    return d <= rKm;
+                })
+                .map(postMapper::toPostDTO)
+                .toList();
+
+        return res;
+    }
+
+    @Transactional(readOnly = true)
+    public List<PostDTO> findPostsInBounds(double minLat, double maxLat, double minLng, double maxLng) {
+        List<Post> all = postRepository.findAll();
+        List<PostDTO> res = all.stream()
+                .filter(p -> p.getLocation() != null)
+                .filter(p -> {
+                    var loc = p.getLocation();
+                    return loc.getLatitude()  >= minLat && loc.getLatitude()  <= maxLat
+                            && loc.getLongitude() >= minLng && loc.getLongitude() <= maxLng;
+                })
+                .map(postMapper::toPostDTO)
+                .toList();
+
+        return res;
+    }
+
+
+    private static double haversineKm(double lat1, double lon1, double lat2, double lon2) {
+        final double R = 6371.0; // Earth radius (km)
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
     }
 
 }

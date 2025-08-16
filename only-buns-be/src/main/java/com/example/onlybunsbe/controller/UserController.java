@@ -51,9 +51,10 @@ public class UserController {
     // Ukoliko nema, server ce vratiti gresku 403 Forbidden
     // Korisnik jeste autentifikovan, ali nije autorizovan da pristupi resursu
     @GetMapping("/user/{userId}")
-
-    public User loadById(@PathVariable Long userId) {
-        return this.userService.findById(userId);
+    public ResponseEntity<UserDTO> loadById(@PathVariable Long userId) {
+        User u = this.userService.findById(userId);
+        if (u == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(com.example.onlybunsbe.dtomappers.UserMapper.toDTO(u));
     }
 
     @GetMapping("/user/all")
@@ -64,8 +65,9 @@ public class UserController {
 
     @GetMapping("/whoami")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    public User user(Principal user) {
-        return this.userService.findByUsername(user.getName());
+    public ResponseEntity<UserDTO> whoami(Principal principal) {
+        User u = this.userService.findByUsername(principal.getName());
+        return ResponseEntity.ok(com.example.onlybunsbe.dtomappers.UserMapper.toDTO(u));
     }
 
     // testna funkcija

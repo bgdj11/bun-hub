@@ -1,7 +1,6 @@
 package com.example.onlybunsbe.service;
 
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -15,9 +14,12 @@ import com.example.onlybunsbe.dtomappers.PostMapper;
 import com.example.onlybunsbe.model.Follow;
 import com.example.onlybunsbe.model.Role;
 import com.example.onlybunsbe.model.User;
+import com.example.onlybunsbe.model.Location;
 import com.example.onlybunsbe.repository.PostRepository;
 import com.example.onlybunsbe.repository.FollowRepository;
 import com.example.onlybunsbe.repository.UserRepository;
+import com.example.onlybunsbe.repository.LocationRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.AccessDeniedException;
@@ -29,28 +31,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PostRepository postRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private RoleService roleService;
-
-    @Autowired
-    private EmailSenderService emailSenderService;
-
-    @Autowired
-    private PostMapper postMapper;
-
-    @Autowired
-    private FollowRepository followRepository;
+    @Autowired private UserRepository userRepository;
+    @Autowired private PostRepository postRepository;
+    @Autowired private LocationRepository locationRepository; // ✅ dodato
+    @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired private RoleService roleService;
+    @Autowired private EmailSenderService emailSenderService;
+    @Autowired private PostMapper postMapper;
+    @Autowired private FollowRepository followRepository;
 
     // Pronalazi korisnika po korisničkom imenu
+    @Transactional(readOnly = true)
     public User findByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findByUsername(username);
     }
@@ -60,6 +51,7 @@ public class UserService {
     }
 
     // Pronalazi korisnika po ID-u
+    @Transactional(readOnly = true)
     public User findById(Long id) throws AccessDeniedException {
         return userRepository.findById(id).orElse(null);
     }
@@ -69,20 +61,36 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    // Čuva novog korisnika na osnovu UserRequest DTO-a
+    // ✅ Registracija sa Location objektom
+    @Transactional
     public User save(UserRequest userRequest) {
         User u = new User();
         u.setUsername(userRequest.getUsername());
-
-        // Hesira lozinku pre čuvanja u bazi
         u.setPassword(passwordEncoder.encode(userRequest.getPassword()));
-
         u.setFirstName(userRequest.getFirstname());
         u.setLastName(userRequest.getLastname());
         u.setEnabled(true);
         u.setEmail(userRequest.getEmail());
-        u.setAddress(userRequest.getAddress());
-        Role role = roleService.findByName("ROLE_USER").orElseThrow(() -> new RuntimeException("Role 'ROLE_USER' not found"));
+
+        // ✅ upis/vezivanje lokacije (analogno PostService)
+        if (userRequest.getLocation() != null) {
+            var dto = userRequest.getLocation();
+
+            Location loc = new Location();
+            loc.setCountry(dto.getCountry());
+            loc.setCity(dto.getCity());
+            loc.setAddress(dto.getAddress());
+            loc.setNumber(dto.getNumber());
+            loc.setLatitude(dto.getLatitude());
+            loc.setLongitude(dto.getLongitude());
+
+            // može i bez ovog poziva ako staviš cascade = PERSIST na relaciji u User
+            locationRepository.save(loc);
+            u.setLocation(loc);
+        }
+
+        Role role = roleService.findByName("ROLE_USER")
+                .orElseThrow(() -> new RuntimeException("Role 'ROLE_USER' not found"));
         u.setRole(role);
         u.setEnabled(false);
 
@@ -96,68 +104,52 @@ public class UserService {
                 "Click the following link to activate your account: " + activationLink
         );
 
-
         return savedUser;
     }
+
+    // Filtriranje/sortiranje korisnika -> vraća DTO (sa location)
     public List<UserDTO> getAllUsers(String name, String email, Integer minPosts, Integer maxPosts, String sortBy, boolean isAscending) {
         List<User> users = userRepository.findAll();
 
-        System.out.println("Filter criteria - Name: " + name + ", Email: " + email + ", Min Posts: " + minPosts + ", Max Posts: " + maxPosts);
-
-        // Primeni pretragu
         Stream<User> filteredUsers = users.stream()
                 .filter(user -> {
                     boolean nameMatch = (name == null || user.getFirstName().contains(name) || user.getLastName().contains(name));
                     boolean emailMatch = (email == null || user.getEmail().contains(email));
-                    boolean minPostsMatch = (minPosts == null || user.getPosts().size() >= minPosts);
-                    boolean maxPostsMatch = (maxPosts == null || user.getPosts().size() <= maxPosts);
-
-                    System.out.println("Checking user: " + user.getEmail() + " - Name match: " + nameMatch + ", Email match: " + emailMatch +
-                            ", Min Posts match: " + minPostsMatch + ", Max Posts match: " + maxPostsMatch);
-
+                    boolean minPostsMatch = (minPosts == null || (user.getPosts() != null && user.getPosts().size() >= minPosts));
+                    boolean maxPostsMatch = (maxPosts == null || (user.getPosts() != null && user.getPosts().size() <= maxPosts));
                     return nameMatch && emailMatch && minPostsMatch && maxPostsMatch;
                 });
 
-        // Primeni sortiranje
         Comparator<User> comparator = "followers".equals(sortBy)
                 ? Comparator.comparingInt(user -> calculateFollowersCount(user.getId()))
                 : Comparator.comparing(User::getEmail);
 
-        if (!isAscending) {
-            comparator = comparator.reversed();
-        }
+        if (!isAscending) comparator = comparator.reversed();
 
-        // Sortiraj i mapiraj u DTO
-        List<UserDTO> result = filteredUsers
+        return filteredUsers
                 .sorted(comparator)
-                .map(this::convertToDTO)
+                .map(UserMapper::toDTO) // ✅ sada koristi UserMapper koji mapira location
                 .collect(Collectors.toList());
-
-        System.out.println("Filtered and sorted users: " + result.size());
-        return result;
     }
+
     public boolean activateUser(String token) {
         User user = userRepository.findByActivationToken(token);
         if (user != null) {
-            user.setEnabled(true); // Enable the user's account
-            user.setActivationToken(null); // Clear the activation token after successful activation
-            userRepository.save(user); // Save the updated user record
+            user.setEnabled(true);
+            user.setActivationToken(null);
+            userRepository.save(user);
             return true;
         }
-        return false; // Return false if the token was invalid or the user was not found
+        return false;
     }
 
     public List<User> getUsersInactiveForMoreThan7Days() {
         int daysInactive = 7;
-
-        // Koristite Instant za precizan rad sa vremenom
         Instant thresholdInstant = Instant.now().minus(daysInactive, ChronoUnit.DAYS);
-
-        // Metoda u UserRepository treba da koristi Instant
         return userRepository.findUsersWithLastLoginBefore(thresholdInstant);
     }
 
-    @Scheduled(cron = "0 59 23 L * ?") // "L" označava poslednji dan u mesecu
+    @Scheduled(cron = "0 59 23 L * ?")
     public void deleteUnactivatedAccounts() {
         List<User> unactivatedUsers = userRepository.findAll().stream()
                 .filter(user -> !user.isEnabled())
@@ -202,7 +194,7 @@ public class UserService {
 
         Set<User> following = followRepository.findAllByFollower(currentUser).stream()
                 .map(Follow::getFollowed)
-                .collect(Collectors.toSet()); // Koristi Set umesto List
+                .collect(Collectors.toSet());
 
         return postRepository.findByUserIn(following).stream()
                 .map(postMapper::toPostDTO)
@@ -213,7 +205,7 @@ public class UserService {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
         return followRepository.findAllByFollower(user).stream()
-                .map(follow -> UserMapper.toDTO(follow.getFollowed())) // Koristi toDTO
+                .map(follow -> UserMapper.toDTO(follow.getFollowed()))
                 .collect(Collectors.toList());
     }
 
@@ -221,30 +213,14 @@ public class UserService {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
         return followRepository.findAllByFollowed(user).stream()
-                .map(follow -> UserMapper.toDTO(follow.getFollower())) // Koristi toDTO
+                .map(follow -> UserMapper.toDTO(follow.getFollower()))
                 .collect(Collectors.toList());
     }
 
-
-    private UserDTO convertToDTO(User user) {
-        UserDTO dto = new UserDTO();
-        dto.setId(Long.valueOf(user.getId()));
-        dto.setEmail(user.getEmail());
-        dto.setUsername(user.getUsername());
-        dto.setFirstName(user.getFirstName());
-        dto.setLastName(user.getLastName());
-        dto.setAddress(user.getAddress());
-        dto.setRole(user.getRole().getName());
-        dto.setPostCount(user.getPosts() != null ? user.getPosts().size() : 0);
-        return dto;
-    }
-
-
     private int calculateFollowersCount(Long userId) {
-        // Tražimo sve korisnike koji imaju trenutnog korisnika u svom `following` setu
         return (int) userRepository.findAll().stream()
                 .filter(u -> u.getFollowing().stream()
-                        .anyMatch(following -> following.getId().equals(userId)))
+                        .anyMatch(f -> f.getId().equals(userId)))
                 .count();
     }
 
@@ -253,7 +229,6 @@ public class UserService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with ID: " + userId));
         user.setLastLoginDate(Instant.now());
         userRepository.save(user);
-
     }
 
     public void changePassword(Long userId, String currentPassword, String newPassword) {
@@ -268,8 +243,7 @@ public class UserService {
             throw new IllegalArgumentException("Nova lozinka mora imati najmanje 8 karaktera.");
         }
 
-        user.setPassword(passwordEncoder.encode(newPassword)); // User.setPassword već update-uje lastPasswordResetDate
+        user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
 }
-

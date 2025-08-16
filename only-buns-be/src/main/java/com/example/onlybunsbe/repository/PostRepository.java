@@ -23,6 +23,20 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("SELECT p FROM Post p WHERE p.user.id IN :userIds ORDER BY p.createdAt DESC")
     List<Post> findByUserIdInOrderByCreatedAtDesc(@Param("userIds") List<Long> userIds);
 
+    @Query("""
+        SELECT p
+        FROM Post p
+        WHERE p.location.latitude BETWEEN :minLat AND :maxLat
+          AND p.location.longitude BETWEEN :minLng AND :maxLng
+        ORDER BY p.createdAt DESC
+    """)
+    List<Post> findInBounds(
+            @Param("minLat") double minLat,
+            @Param("maxLat") double maxLat,
+            @Param("minLng") double minLng,
+            @Param("maxLng") double maxLng
+    );
+
 }
 
 

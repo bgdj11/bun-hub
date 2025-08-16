@@ -23,7 +23,17 @@
   <!-- Current User Section -->
   <div *ngIf="isCurrentUserProfile">
     <h2>Your Profile</h2>
-    <p>Address: {{ user?.address }}</p>
+    <p>
+      Address:
+      <ng-container *ngIf="user?.location; else noAddress">
+        {{ user?.location?.address }} {{ user?.location?.number }},
+        {{ user?.location?.city }}, {{ user?.location?.country }}
+        <span *ngIf="user?.location?.latitude && user?.location?.longitude">
+      ({{ user?.location?.latitude }}, {{ user?.location?.longitude }})
+    </span>
+      </ng-container>
+      <ng-template #noAddress><em>Not set.</em></ng-template>
+    </p>
 
     <div>
       <input type="text" [(ngModel)]="emailToSearch" placeholder="Enter email to search" />
@@ -103,7 +113,17 @@
   <!-- Other User Section -->
   <div *ngIf="!isCurrentUserProfile">
     <h2>{{ user?.username }}'s Profile</h2>
-    <p>Address: {{ user?.address }}</p>
+    <p>
+      Address:
+      <ng-container *ngIf="user?.location; else noAddress">
+        {{ user?.location?.address }} {{ user?.location?.number }},
+        {{ user?.location?.city }}, {{ user?.location?.country }}
+        <span *ngIf="user?.location?.latitude && user?.location?.longitude">
+      ({{ user?.location?.latitude }}, {{ user?.location?.longitude }})
+    </span>
+      </ng-container>
+      <ng-template #noAddress><em>Not set.</em></ng-template>
+    </p>
     <button (click)="followUser()">Follow</button>
   </div>
 

@@ -5,8 +5,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
 import lombok.*;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -24,10 +24,8 @@ public class User implements UserDetails {
 
     private static final long serialVersionUID = 1L;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
 
     @NotNull
     @Size(min = 3, max = 100)
@@ -55,11 +53,12 @@ public class User implements UserDetails {
     @Column(name = "last_name")
     private String lastName;
 
-    @Column(name = "address")
-    private String address;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "location_id")
+    private Location location;
 
     @Column(name = "enabled")
-    private boolean enabled = false; // Podrazumevano false dok korisnik ne potvrdi email
+    private boolean enabled = false;
 
     @JsonIgnore
     @Column(name = "last_password_reset_date")
@@ -86,29 +85,10 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "followed", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Follow> followers = new HashSet<>();
 
-    @JsonIgnore
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(role);
-    }
-
-    @JsonIgnore
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @JsonIgnore
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @JsonIgnore
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
+    @JsonIgnore @Override public Collection<? extends GrantedAuthority> getAuthorities() { return List.of(role); }
+    @JsonIgnore @Override public boolean isAccountNonExpired() { return true; }
+    @JsonIgnore @Override public boolean isAccountNonLocked() { return true; }
+    @JsonIgnore @Override public boolean isCredentialsNonExpired() { return true; }
 
     public void setPassword(String password) {
         this.password = password;
@@ -120,6 +100,5 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
-    private List<ChatMessage> sentMessages; // Poruke koje je korisnik poslao
-
+    private List<ChatMessage> sentMessages;
 }

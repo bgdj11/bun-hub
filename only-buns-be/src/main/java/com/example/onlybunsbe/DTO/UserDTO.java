@@ -11,7 +11,7 @@ public class UserDTO {
     private String username;
     private String firstName;
     private String lastName;
-    private String address;
+    private LocationDTO location;
     private boolean isActive;
     private LocalDateTime registeredAt;
     private String role;

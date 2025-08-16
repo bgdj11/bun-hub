@@ -1,61 +1,119 @@
 <mat-card elevation="5" fxFlex class="content">
   <mat-card-title>
-    <h2>{{title}}</h2>
+    <h2>{{ title }}</h2>
   </mat-card-title>
 
   <mat-card-content>
-    <p *ngIf="notification" [class]="notification.msgType">{{notification.msgBody}}</p>
+    <!-- Notifikacija -->
+    <p *ngIf="notification" [class]="notification.msgType">{{ notification.msgBody }}</p>
 
+    <!-- Forma -->
     <form (ngSubmit)="onSubmit()" *ngIf="!submitted" [formGroup]="form">
+      <!-- Username -->
       <mat-form-field>
-        <label>Username: </label>
-        <input formControlName="username" matInput required>
-        <mat-error *ngIf="form.get('username')?.invalid">Username is required and must be between 3 and 64 characters.</mat-error>
+        <label>Username:</label>
+        <input formControlName="username" matInput required />
+        <mat-error *ngIf="form.get('username')?.invalid">
+          Username je obavezan (3–64 karaktera).
+        </mat-error>
       </mat-form-field>
 
+      <!-- Password -->
       <mat-form-field>
-        <label>Password: </label>
-        <input formControlName="password" matInput required type="password">
-        <mat-error *ngIf="form.get('password')?.invalid">Password is required and must be between 8 and 32 characters.</mat-error>
+        <label>Password:</label>
+        <input formControlName="password" matInput required type="password" />
+        <mat-error *ngIf="form.get('password')?.invalid">
+          Password je obavezan (8–32 karaktera).
+        </mat-error>
       </mat-form-field>
 
-      <!-- Izmenjeni deo za Confirm Password -->
+      <!-- Confirm Password -->
       <mat-form-field>
-        <label>Confirm Password: </label>
-        <input formControlName="confirmPassword" matInput required type="password">
-        <mat-error *ngIf="form.errors?.['mismatch']">Passwords do not match.</mat-error>
+        <label>Confirm Password:</label>
+        <input formControlName="confirmPassword" matInput required type="password" />
+        <mat-error *ngIf="form.errors?.['mismatch']">
+          Password polja se ne poklapaju.
+        </mat-error>
       </mat-form-field>
 
+      <!-- First Name -->
       <mat-form-field>
-        <label>First Name: </label>
-        <input formControlName="firstname" matInput required>
-        <mat-error *ngIf="form.get('firstname')?.invalid">First name is required.</mat-error>
+        <label>First Name:</label>
+        <input formControlName="firstname" matInput required />
+        <mat-error *ngIf="form.get('firstname')?.invalid">
+          First name je obavezan.
+        </mat-error>
       </mat-form-field>
 
+      <!-- Last Name -->
       <mat-form-field>
-        <label>Last Name: </label>
-        <input formControlName="lastname" matInput required>
-        <mat-error *ngIf="form.get('lastname')?.invalid">Last name is required.</mat-error>
+        <label>Last Name:</label>
+        <input formControlName="lastname" matInput required />
+        <mat-error *ngIf="form.get('lastname')?.invalid">
+          Last name je obavezan.
+        </mat-error>
       </mat-form-field>
 
-      <mat-form-field>
-        <label>Email: </label>
-        <input formControlName="email" matInput required>
-        <mat-error *ngIf="form.get('email')?.invalid">A valid email address is required.</mat-error>
+      <!-- Email -->
+      <mat-form-field class="w-100">
+        <label>Email:</label>
+        <input formControlName="email" matInput required />
+        <mat-error *ngIf="form.get('email')?.invalid">
+          Unesite ispravnu email adresu.
+        </mat-error>
       </mat-form-field>
 
-      <mat-form-field>
-        <label>Address: </label>
-        <input formControlName="address" matInput required>
-        <mat-error *ngIf="form.get('address')?.invalid">Address is required.</mat-error>
-      </mat-form-field>
+      <!-- LOCATION GROUP -->
+      <div [formGroupName]="'location'" class="location-grid">
+        <mat-form-field>
+          <label>Country:</label>
+          <input matInput formControlName="country" (input)="onAddressChange()" />
+        </mat-form-field>
 
-      <button [disabled]="!form.valid" color="primary" mat-raised-button type="submit">Sign up</button>
-      <br>
+        <mat-form-field>
+          <label>City:</label>
+          <input matInput formControlName="city" (input)="onAddressChange()" />
+        </mat-form-field>
+
+        <mat-form-field class="w-100">
+          <label>Street (Address):</label>
+          <input matInput formControlName="address" (input)="onAddressChange()" />
+        </mat-form-field>
+
+        <mat-form-field>
+          <label>No.:</label>
+          <input matInput type="number" formControlName="number" (input)="onAddressChange()" />
+        </mat-form-field>
+
+        <mat-form-field>
+          <label>Latitude:</label>
+          <input matInput formControlName="latitude" readonly />
+        </mat-form-field>
+
+        <mat-form-field>
+          <label>Longitude:</label>
+          <input matInput formControlName="longitude" readonly />
+        </mat-form-field>
+      </div>
+
+      <!-- MAPA (ngx-leaflet) -->
+      <div
+        leaflet
+        [leafletOptions]="options"
+        (leafletMapReady)="onMapReady($event)"
+        style="height: 320px; border-radius: 8px; margin: 12px 0;"
+      ></div>
+
+      <!-- Akcije -->
+      <button [disabled]="!form.valid" color="primary" mat-raised-button type="submit">
+        Sign up
+      </button>
+      <br />
       <button color="primary" mat-raised-button routerLink="/">Go Back</button>
     </form>
 
-    <br>
+    <!-- Loader -->
+    <br />
     <mat-spinner *ngIf="submitted" mode="indeterminate"></mat-spinner>
   </mat-card-content>
 </mat-card>

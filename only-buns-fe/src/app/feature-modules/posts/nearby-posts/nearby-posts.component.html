@@ -1,1 +1,90 @@
-<p>nearby-posts works!</p>
+<div class="toolbar">
+  <div class="controls">
+    <label>
+      Radius:
+      <input
+        type="range"
+        min="1"
+        max="50"
+        step="1"
+        [(ngModel)]="radiusKm"
+        (input)="onRadiusChange()"
+      />
+      <span>{{ radiusKm }} km</span>
+    </label>
+
+    <button (click)="recenter()">Center on me</button>
+  </div>
+
+  <div class="status" *ngIf="loading">Loading…</div>
+</div>
+
+<div id="nearbyMap" class="map"></div>
+
+<div class="list">
+  <h3 *ngIf="posts?.length">Posts in view: {{ posts.length }}</h3>
+  <p *ngIf="!posts?.length">No posts in this area.</p>
+</div>
+
+<!-- Detalj ispod mape: pun “post like na profilu” -->
+<div *ngIf="selectedPost as sp" id="selectedPostBlock" class="post-card">
+  <div class="post-header">
+    <a [routerLink]="['/profile', sp.userId]" class="author-link">
+      View author's profile →
+    </a>
+  </div>
+
+  <h2 class="post-title">Post #{{ sp.id }}</h2>
+
+  <div class="post-image-wrap" *ngIf="imgUrl(sp) as url">
+    <img class="post-image" [src]="url" alt="Post image" />
+  </div>
+
+  <p class="post-desc">{{ sp.description }}</p>
+
+  <div class="post-meta">
+    <span>Created: {{ sp.createdAt | date : 'short' }}</span>
+    <span>Likes: {{ sp.likeCount }}</span>
+  </div>
+
+  <div class="post-address" *ngIf="sp.location as loc">
+    <small>
+      {{ (loc.address ? (loc.address + (loc.number ? ' ' + loc.number : '')) : '') }}
+      <span *ngIf="loc.city">, {{ loc.city }}</span>
+      <span *ngIf="loc.country">, {{ loc.country }}</span>
+    </small>
+  </div>
+
+  <!-- Akcije -->
+  <div class="actions">
+    <button
+      [disabled]="selectedIsLiked || !authService.isAuthenticated()"
+      (click)="likeSelected()"
+    >
+      {{ selectedIsLiked ? 'Liked' : 'Like' }}
+    </button>
+  </div>
+
+  <!-- Komentari -->
+  <div class="comment-box" *ngIf="authService.isAuthenticated()">
+    <input
+      [(ngModel)]="selectedComment"
+      placeholder="Add a comment…"
+      (keyup.enter)="addCommentSelected()"
+    />
+    <button (click)="addCommentSelected()" [disabled]="!selectedComment.trim()">
+      Comment
+    </button>
+  </div>
+
+  <div class="post-comments" *ngIf="sp.comments?.length">
+    <h4>Comments ({{ sp.comments.length }})</h4>
+    <ul>
+      <li *ngFor="let c of sp.comments">
+        <strong>{{ c.userName || 'User' }}</strong>: {{ c.content }}
+        <br />
+        <small>{{ c.createdAt | date : 'short' }}</small>
+      </li>
+    </ul>
+  </div>
+</div>

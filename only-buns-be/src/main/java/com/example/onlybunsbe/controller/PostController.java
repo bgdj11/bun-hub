@@ -114,5 +114,25 @@ public class PostController {
         return ResponseEntity.ok(updatedPost); // Vraćamo ažurirani PostDTO
     }
 
+    @GetMapping("/nearby")
+    public ResponseEntity<List<PostDTO>> getNearbyPosts(
+            @RequestParam double centerLat,
+            @RequestParam double centerLng,
+            @RequestParam(defaultValue = "5") double radiusKm
+    ) {
+        List<PostDTO> posts = postService.findPostsNearby(centerLat, centerLng, radiusKm);
+        return ResponseEntity.ok(posts);
+    }
+
+    @GetMapping("/in-bounds")
+    public ResponseEntity<List<PostDTO>> getPostsInBounds(
+            @RequestParam double minLat,
+            @RequestParam double maxLat,
+            @RequestParam double minLng,
+            @RequestParam double maxLng
+    ) {
+        List<PostDTO> posts = postService.findPostsInBounds(minLat, maxLat, minLng, maxLng);
+        return ResponseEntity.ok(posts);
+    }
 
 }

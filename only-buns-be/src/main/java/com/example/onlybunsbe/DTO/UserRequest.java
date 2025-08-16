@@ -2,10 +2,9 @@ package com.example.onlybunsbe.DTO;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-// DTO koji preuzima podatke iz HTML forme za registraciju
+/** DTO koji preuzima podatke iz HTML forme za registraciju */
 public class UserRequest {
 
     private Long id;
@@ -31,69 +30,33 @@ public class UserRequest {
     @Email(message = "Please provide a valid email address")
     private String email;
 
-    private String address;
+    // ❌ uklonjeno: private String address;
+    // ✅ dodato:
+    private LocationDTO location;
 
-    public Long getId() {
-        return id;
-    }
+    // --- getters/setters ---
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public String getUsername() {
-        return username;
-    }
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 
-    public String getPassword() {
-        return password;
-    }
+    public String getConfirmPassword() { return confirmPassword; }
+    public void setConfirmPassword(String confirmPassword) { this.confirmPassword = confirmPassword; }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+    public String getFirstname() { return firstname; }
+    public void setFirstname(String firstname) { this.firstname = firstname; }
 
-    public String getConfirmPassword() {
-        return confirmPassword;
-    }
+    public String getLastname() { return lastname; }
+    public void setLastname(String lastname) { this.lastname = lastname; }
 
-    public void setConfirmPassword(String confirmPassword) {
-        this.confirmPassword = confirmPassword;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public String getFirstname() {
-        return firstname;
-    }
-
-    public void setFirstname(String firstname) {
-        this.firstname = firstname;
-    }
-
-    public String getLastname() {
-        return lastname;
-    }
-
-    public void setLastname(String lastname) {
-        this.lastname = lastname;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
+    public LocationDTO getLocation() { return location; }
+    public void setLocation(LocationDTO location) { this.location = location; }
 }
