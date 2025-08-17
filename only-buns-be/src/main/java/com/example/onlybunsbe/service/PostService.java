@@ -41,6 +41,7 @@ public class PostService {
     private LocationRepository locationRepository;
     private FollowRepository followRepository;
     private final RabbitMQPublisher rabbitMQPublisher; // Dodato
+    private final TrendsService trendsService;
     @Transactional
     public Optional<PostDTO> getPostById(Long id) {
         return postRepository.findById(id).map(postMapper::toPostDTO);
@@ -72,6 +73,7 @@ public class PostService {
 
         // Save Post
         Post savedPost = postRepository.save(post);
+        trendsService.invalidateTrendsCache(); // invalidacija kesa
         return Optional.of(postMapper.toPostDTO(savedPost));
     }
     // Metoda za lajkovanje objave
@@ -90,6 +92,7 @@ public class PostService {
             like.setPost(post.get());
             like.setLikedAt(Instant.now());
             likeRepository.save(like);
+            trendsService.invalidateTrendsCache();
             return true;
         }
         return false;
@@ -142,6 +145,7 @@ public class PostService {
             likeRepository.deleteByPost(post.get());
             commentRepository.deleteByPost(post.get());
             postRepository.delete(post.get());
+            trendsService.invalidateTrendsCache();
             return true;
         }
         return false;

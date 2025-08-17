@@ -307,7 +307,7 @@ export class NearbyPostsComponent implements OnInit, OnDestroy {
     this.postService.addComment(this.selectedPost.id, this.currentUserId, content).subscribe({
       next: (toAdd) => {
         const view = this.toViewComment(toAdd);
-        
+
         this.selectedPost!.comments = [view, ...(this.selectedPost!.comments || [])];
       },
     });
