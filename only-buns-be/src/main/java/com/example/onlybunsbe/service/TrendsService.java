@@ -70,24 +70,18 @@ public class TrendsService {
     }
 
 
+    // Top 5 u poslednjih 7 dana
     private List<PostDTO> getTopPostsLast7DaysInternal() {
-        var since7 = Instant.now().minus(7, ChronoUnit.DAYS);
-        var rows = postRepository.findTopByLikesSince(since7, PageRequest.of(0, 5));
-        return rows.stream().map(v -> {
-            Post p = v.getPost();
-            PostDTO dto = postMapper.toPostDTO(p);
-            dto.setLikeCount((int) v.getLikeCount());
-            return dto;
-        }).toList();
+        Instant since = Instant.now().minus(7, ChronoUnit.DAYS);
+        var rows = postRepository.findTopByLikesSince(since, PageRequest.of(0, 5));
+        return rows.stream().map(v -> postMapper.toPostDTO(v.getPost())).toList();
     }
 
+    // Top 10 all time -> pošalji EPOCH umesto null!
     private List<PostDTO> getTopPostsAllTimeInternal() {
-        var rows = postRepository.findTopByLikesSince(null, PageRequest.of(0, 10));
-        return rows.stream().map(v -> {
-            PostDTO dto = postMapper.toPostDTO(v.getPost());
-            dto.setLikeCount((int) v.getLikeCount());
-            return dto;
-        }).toList();
+        Instant since = Instant.EPOCH; // 1970-01-01T00:00:00Z
+        var rows = postRepository.findTopByLikesSince(since, PageRequest.of(0, 10));
+        return rows.stream().map(v -> postMapper.toPostDTO(v.getPost())).toList();
     }
 
     private List<TopLikerDTO> getTopLikers7DaysInternal() {

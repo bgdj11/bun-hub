@@ -21,6 +21,9 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final TrendsService trendsService;
+
+
 
     @Transactional
     public Optional<CommentDTO> addComment(CommentDTO commentDTO) {
@@ -34,6 +37,8 @@ public class CommentService {
             comment.setContent(commentDTO.getContent());
             comment.setCreatedAt(Instant.now());
             commentRepository.save(comment);
+
+            trendsService.invalidateTrendsCache();
 
             // Mapiranje komentara u CommentDTO
             CommentDTO result = new CommentDTO();

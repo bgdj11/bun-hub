@@ -12,6 +12,7 @@ import com.example.onlybunsbe.repository.*;
 import com.example.onlybunsbe.dtomappers.PostMapper;
 import com.example.onlybunsbe.model.Comment;
 import com.example.onlybunsbe.model.Like;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class PostService {
@@ -56,51 +58,78 @@ public class PostService {
 
     @Transactional
     public Optional<PostDTO> createPost(PostDTO postDTO, MultipartFile image) throws IOException {
+        log.info("createPost called with dto={}, imageName={}, imageSize={}",
+                postDTO, image != null ? image.getOriginalFilename() : null,
+                image != null ? image.getSize() : null);
+
         // Create Image entity
         Image imageEntity = imageService.createImageEntity(image);
-        postDTO.getImage().setPath(imageEntity.getPath());
+        log.debug("Image entity created id={}, path={}", imageEntity.getId(), imageEntity.getPath());
 
-        // Create Post entity from DTO
+        if (postDTO.getImage() != null) {
+            postDTO.getImage().setPath(imageEntity.getPath());
+        } else {
+            log.warn("postDTO.getImage() is null, creating new ImageDTO");
+            postDTO.setImage(new com.example.onlybunsbe.DTO.ImageDTO());
+            postDTO.getImage().setPath(imageEntity.getPath());
+        }
+
+        // Create Post entity
         Post post = postMapper.toPostEntity(postDTO);
         post.setComments(new ArrayList<>());
         post.setLikes(new ArrayList<>());
         post.setImage(imageEntity);
 
-        // Ensure Location is persisted before setting to Post (if Location is used)
+        // Save location if new
         if (post.getLocation() != null && post.getLocation().getId() == null) {
-            locationRepository.save(post.getLocation()); // Persist Location first if new
+            locationRepository.save(post.getLocation());
+            log.debug("Location saved id={}, city={}, country={}",
+                    post.getLocation().getId(), post.getLocation().getCity(), post.getLocation().getCountry());
         }
 
-        // Save Post
+        // Save post
         Post savedPost = postRepository.save(post);
-        trendsService.invalidateTrendsCache(); // invalidacija kesa
-        return Optional.of(postMapper.toPostDTO(savedPost));
+        log.info("Post saved id={}, userId={}, desc={}",
+                savedPost.getId(),
+                savedPost.getUser() != null ? savedPost.getUser().getId() : null,
+                savedPost.getDescription());
+
+        trendsService.invalidateTrendsCache();
+        log.debug("Trends cache invalidated after creating post {}", savedPost.getId());
+
+        PostDTO result = postMapper.toPostDTO(savedPost);
+        log.info("Returning created PostDTO id={}", result.getId());
+
+        return Optional.of(result);
     }
-    // Metoda za lajkovanje objave
+
     @Transactional
     public boolean likePost(Long postId, Long userId) {
+        log.info("likePost called postId={}, userId={}", postId, userId);
         var post = postRepository.findById(postId);
         var user = userRepository.findById(userId);
 
         if (post.isPresent() && user.isPresent()) {
-            // Proveri da li je korisnik već lajkovao post
             if (likeRepository.existsByPostAndUser(post.get(), user.get())) {
-                return false; // Već lajkovano
+                log.warn("User {} already liked post {}", userId, postId);
+                return false;
             }
             Like like = new Like();
             like.setUser(user.get());
             like.setPost(post.get());
             like.setLikedAt(Instant.now());
             likeRepository.save(like);
+            log.info("User {} liked post {}", userId, postId);
             trendsService.invalidateTrendsCache();
             return true;
         }
+        log.warn("Post or user not found (postId={}, userId={})", postId, userId);
         return false;
     }
 
-    // Metoda za dodavanje komentara na objavu
     @Transactional
     public Optional<CommentDTO> addComment(Long postId, Long userId, String content) {
+        log.info("addComment called postId={}, userId={}, content={}", postId, userId, content);
         var post = postRepository.findById(postId);
         var user = userRepository.findById(userId);
 
@@ -112,15 +141,20 @@ public class PostService {
             comment.setCreatedAt(Instant.now());
             commentRepository.save(comment);
 
-            CommentDTO commentDTO = new CommentDTO();
-            commentDTO.setId(Long.valueOf(comment.getId()));
-            commentDTO.setContent(content);
-            commentDTO.setCreatedAt(comment.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDateTime());
-            commentDTO.setUserName(user.get().getUsername());
-            return Optional.of(commentDTO);
+            CommentDTO dto = new CommentDTO();
+            dto.setId((long) comment.getId());
+            dto.setContent(content);
+            dto.setCreatedAt(comment.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDateTime());
+            dto.setUserName(user.get().getUsername());
+
+            log.info("Comment saved id={} for post {}", dto.getId(), postId);
+            trendsService.invalidateTrendsCache();
+            return Optional.of(dto);
         }
+        log.warn("Failed to add comment, post or user missing (postId={}, userId={})", postId, userId);
         return Optional.empty();
     }
+
 
     // Metoda za ažuriranje objave
     @Transactional

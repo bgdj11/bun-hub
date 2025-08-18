@@ -26,6 +26,7 @@ public class LikeService {
     private final UserRepository userRepository;
 
     private final PostMapper postMapper;
+    private final TrendsService trendsService;
 
     @Transactional
     public PostDTO likePost(Long postId, Long userId) {
@@ -47,16 +48,16 @@ public class LikeService {
 
 
             // Simulacija konflikta sa Thread.sleep()
-            try {
-                Thread.sleep(10000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            //try {
+            //    Thread.sleep(10000);
+           // } catch (InterruptedException e) {
+              //  Thread.currentThread().interrupt();
+           // }
 
 
             post.addLike(like);
             postRepository.save(post);
-
+            trendsService.invalidateTrendsCache();
             return postMapper.toPostDTO(post);
         }
 

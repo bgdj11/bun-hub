@@ -5,7 +5,7 @@ import { Comment } from '../posts/model/comment';
 import { ApiService } from '../../infrastructure/api.service';
 import { Like } from '../posts/model/like';
 import { HttpClient } from '@angular/common/http';
-import { map } from 'rxjs/operators';
+import {map, shareReplay} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -14,7 +14,7 @@ export class PostService {
   private postApiUrl = 'http://localhost:8080/api/posts';
   private likeApiUrl = 'http://localhost:8080/api/likes';
   private commentApiUrl = 'http://localhost:8080/api/comments';
-
+  private readonly apiBase = 'http://localhost:8080';
   private imageCache = new Map<string, string>();
 
   constructor(private apiService: ApiService, private http: HttpClient) {}
@@ -82,28 +82,39 @@ export class PostService {
     return this.apiService.post(createUrl, formData);
   }
 
-  getCachedImage(imagePath: string): Observable<string> {
-    const cachedImage = this.imageCache.get(imagePath);
-    if (cachedImage) {
-      // Ako je slika u kešu, vraćamo je kao Observable
-      return new Observable((observer) => {
-        observer.next(cachedImage);
-        observer.complete();
+  getCachedImage(path: string): Observable<string> {
+    const normalized = (path || '').replace(/^\/+/, '');
+    const key = normalized;
+
+    const cached = this.imageCache.get(key);
+    if (cached) {
+      return new Observable((obs) => {
+        obs.next(cached);
+        obs.complete();
       });
     }
 
-    // Ako nije u kešu, preuzimamo je sa servera
-    return this.http
-      .get(`http://localhost:8080/uploads/${imagePath}`, {
-        responseType: 'blob',
-      })
-      .pipe(
-        map((blob) => {
-          const objectUrl = URL.createObjectURL(blob); // Kreiranje URL-a za blob
-          this.imageCache.set(imagePath, objectUrl); // Keširanje slike
-          return objectUrl;
-        })
-      );
+    // Ako ti je “prava” ruta drugačija (npr. /api/images/{file}),
+    // promeni URL ispod. Važno: ide preko HttpClient -> doda se JWT.
+    const url = `${this.apiBase}/uploads/${encodeURIComponent(normalized)}`;
+
+    return this.http.get(url, { responseType: 'blob' }).pipe(
+      map((blob) => {
+        const objectUrl = URL.createObjectURL(blob);
+        this.imageCache.set(key, objectUrl);
+        return objectUrl;
+      }),
+      // shareReplay da se ne šalje više istih GET-ova paralelno
+      shareReplay(1)
+    );
+  }
+
+  /** Očisti sve blob URL-ove iz keša da ne curi memorija */
+  clearImageCache() {
+    for (const [, objectUrl] of this.imageCache) {
+      URL.revokeObjectURL(objectUrl);
+    }
+    this.imageCache.clear();
   }
 
   getUserFeed(userId: number): Observable<Post[]> {

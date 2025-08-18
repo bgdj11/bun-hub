@@ -80,6 +80,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/comments/**").authenticated() // Više uloga, korisnik mora imati barem jednu
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/api/foo").permitAll()
+                        .requestMatchers("/api/trends").authenticated()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/api/analytics/**").hasAnyRole("ADMIN")
                         .requestMatchers("/api/groups/**").authenticated()

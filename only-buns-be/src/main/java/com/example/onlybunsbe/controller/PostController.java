@@ -33,7 +33,7 @@ public class PostController {
     @Autowired
     private FollowRepository followRepository;
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public ResponseEntity<PostDTO> getPostById(@PathVariable Long id) {
         return postService.getPostById(id)
                 .map(ResponseEntity::ok)

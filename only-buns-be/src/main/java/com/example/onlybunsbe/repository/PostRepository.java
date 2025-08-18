@@ -27,13 +27,13 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     }
 
     @Query("""
-           select p as post, count(l) as likeCount
-           from Post p
-           left join p.likes l
-           where (:since is null or l.likedAt >= :since)
-           group by p
-           order by count(l) desc
-           """)
+   select p as post,
+          sum(case when l.likedAt >= :since then 1 else 0 end) as likeCount
+   from Post p
+   left join p.likes l
+   group by p
+   order by sum(case when l.likedAt >= :since then 1 else 0 end) desc, p.createdAt desc
+   """)
     List<PostLikeCountView> findTopByLikesSince(@Param("since") Instant since, Pageable pageable);
 
     List<Post> findByUserId(Long userId);

@@ -1,1 +1,183 @@
-<p>trends works!</p>
+<div class="trends-page">
+  <div class="header">
+    <h1>Trends</h1>
+    <button class="refresh" (click)="refresh()">Refresh</button>
+  </div>
+
+  <div *ngIf="loading" class="loading">Učitavanje...</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+
+  <ng-container *ngIf="!loading && !error">
+    <ng-container *ngIf="summary$ | async as summary">
+
+      <!-- Stat kartice -->
+      <section class="stats">
+        <div class="stat">
+          <div class="label">Ukupan broj objava</div>
+          <div class="value">{{ summary.totalPosts }}</div>
+        </div>
+        <div class="stat">
+          <div class="label">Objava u poslednjih 30 dana</div>
+          <div class="value">{{ summary.postsLast30Days }}</div>
+        </div>
+      </section>
+
+      <div class="grid">
+        <!-- Top 5 last 7 days -->
+        <section class="panel">
+          <h2>Top 5 (poslednjih 7 dana)</h2>
+
+          <div *ngIf="!summary.top5Last7Days?.length" class="muted">Nema postova.</div>
+          <div *ngFor="let sp of summary.top5Last7Days" class="post-card">
+            <div class="post-header">
+              <a [routerLink]="['/profile', sp.userId]" class="author-link">
+                View author's profile →
+              </a>
+            </div>
+
+            <h2 class="post-title">Post #{{ sp.id }}</h2>
+
+            <div class="post-image-wrap" *ngIf="imgUrl(sp) as url">
+              <img class="post-image" [src]="url" alt="Post image" />
+            </div>
+
+            <p class="post-desc">{{ sp.description }}</p>
+
+            <div class="post-meta">
+              <span>Created: {{ sp.createdAt | date : 'short' }}</span>
+              <span>Likes: {{ sp.likeCount }}</span>
+            </div>
+
+            <div class="post-address" *ngIf="sp.location as loc">
+              <small>
+                {{ (loc.address ? (loc.address + (loc.number ? ' ' + loc.number : '')) : '') }}
+                <span *ngIf="loc.city">, {{ loc.city }}</span>
+                <span *ngIf="loc.country">, {{ loc.country }}</span>
+              </small>
+            </div>
+
+            <div class="actions">
+              <button
+                [disabled]="isPostLiked(sp) || !authService.isAuthenticated()"
+                (click)="onLike(sp)"
+              >
+                {{ isPostLiked(sp) ? 'Liked' : 'Like' }}
+              </button>
+            </div>
+
+            <div class="comment-box" *ngIf="authService.isAuthenticated()">
+              <input
+                [(ngModel)]="commentDraft[sp.id]"
+                placeholder="Add a comment…"
+                (keyup.enter)="onAddComment(sp)"
+              />
+              <button (click)="onAddComment(sp)" [disabled]="!(commentDraft[sp.id] || '').trim()">
+                Comment
+              </button>
+            </div>
+
+            <div class="post-comments" *ngIf="sp.comments?.length">
+              <h4>Comments ({{ sp.comments?.length || 0 }})</h4>
+              <ul>
+                <li *ngFor="let c of (sp.comments || [])">
+                  <strong>{{ c.userName || 'User' }}</strong>: {{ c.content }}
+                  <br />
+                  <small>{{ c.createdAt | date : 'short' }}</small>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- Top 10 all time -->
+        <section class="panel">
+          <h2>Top 10 (all time)</h2>
+
+          <div *ngIf="!summary.top10AllTime?.length" class="muted">Nema postova.</div>
+          <div *ngFor="let sp of summary.top10AllTime; index as i" class="post-card">
+            <div class="post-header">
+              <a [routerLink]="['/profile', sp.userId]" class="author-link">
+                View author's profile →
+              </a>
+            </div>
+
+            <h2 class="post-title">#{{ i + 1 }} — Post #{{ sp.id }}</h2>
+
+            <div class="post-image-wrap" *ngIf="imgUrl(sp) as url">
+              <img class="post-image" [src]="url" alt="Post image" />
+            </div>
+
+            <p class="post-desc">{{ sp.description }}</p>
+
+            <div class="post-meta">
+              <span>Created: {{ sp.createdAt | date : 'short' }}</span>
+              <span>Likes: {{ sp.likeCount }}</span>
+            </div>
+
+            <div class="post-address" *ngIf="sp.location as loc">
+              <small>
+                {{ (loc.address ? (loc.address + (loc.number ? ' ' + loc.number : '')) : '') }}
+                <span *ngIf="loc.city">, {{ loc.city }}</span>
+                <span *ngIf="loc.country">, {{ loc.country }}</span>
+              </small>
+            </div>
+
+            <div class="actions">
+              <button
+                [disabled]="isPostLiked(sp) || !authService.isAuthenticated()"
+                (click)="onLike(sp)"
+              >
+                {{ isPostLiked(sp) ? 'Liked' : 'Like' }}
+              </button>
+            </div>
+
+            <div class="comment-box" *ngIf="authService.isAuthenticated()">
+              <input
+                [(ngModel)]="commentDraft[sp.id]"
+                placeholder="Add a comment…"
+                (keyup.enter)="onAddComment(sp)"
+              />
+              <button (click)="onAddComment(sp)" [disabled]="!(commentDraft[sp.id] || '').trim()">
+                Comment
+              </button>
+            </div>
+
+            <div class="post-comments" *ngIf="sp.comments?.length">
+              <h4>Comments ({{ sp.comments?.length || 0 }})</h4>
+              <ul>
+                <li *ngFor="let c of (sp.comments || [])">
+
+                <strong>{{ c.userName || 'User' }}</strong>: {{ c.content }}
+                  <br />
+                  <small>{{ c.createdAt | date : 'short' }}</small>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- Top likers 7d -->
+        <section class="panel">
+          <h2>Top 10 naloga po deljenju lajkova (7 dana)</h2>
+          <table class="likers-table">
+            <thead>
+            <tr>
+              <th>#</th>
+              <th>Korisnik</th>
+              <th>Lajkova</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr *ngFor="let u of summary.topLikers7Days; index as i">
+              <td>{{ i + 1 }}</td>
+              <td>{{ u.username }}</td>
+              <td>{{ u.likeCount }}</td>
+            </tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+
+    </ng-container>
+  </ng-container>
+</div>
