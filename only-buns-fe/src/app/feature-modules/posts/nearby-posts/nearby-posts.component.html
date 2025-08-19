@@ -13,7 +13,11 @@
       <span>{{ radiusKm }} km</span>
     </label>
 
+
     <button (click)="recenter()">Center on me</button>
+
+    <button (click)="loadCareLocations()">Get Care Locations</button>
+
   </div>
 
   <div class="status" *ngIf="loading">Loading…</div>

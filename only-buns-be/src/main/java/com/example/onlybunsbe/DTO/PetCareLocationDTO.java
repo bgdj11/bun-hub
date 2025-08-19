@@ -1,12 +1,20 @@
 package com.example.onlybunsbe.DTO;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class PetCareLocationDTO {
+
     private Long id;
     private String name;
-    private Double latitude;
-    private Double longitude;
-    private String description;
+
+    private String country;
+    private String city;
+    private String address;
+    private int number;
+
+    private double latitude;
+    private double longitude;
 }

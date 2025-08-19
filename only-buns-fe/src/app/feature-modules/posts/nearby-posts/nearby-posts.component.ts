@@ -8,6 +8,8 @@ import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../infrastructure/auth/auth.service';
 import { PostService } from '../post.service';
 import { Like } from '../model/like';
+import { CareLocation } from '../model/care-location.model';
+import { CareLocationService } from './care-location.service';
 
 interface PostDTO {
   id: number;
@@ -53,6 +55,7 @@ export class NearbyPostsComponent implements OnInit, OnDestroy {
   posts: PostDTO[] = [];
   selectedPost: PostDTO | null = null;
   selectedComment = '';
+  careLocations: CareLocation[] = [];
 
   // like status keš za brzu UI reakciju
   private userLikes: Like[] = [];
@@ -67,7 +70,8 @@ export class NearbyPostsComponent implements OnInit, OnDestroy {
   constructor(
     private http: HttpClient,
     private postService: PostService,
-    public authService: AuthService
+    public authService: AuthService,
+    private careLocationService: CareLocationService
   ) {}
 
   ngOnInit(): void {
@@ -109,6 +113,38 @@ export class NearbyPostsComponent implements OnInit, OnDestroy {
 
     this.postsLayer.addTo(this.map);
     this.map.on('moveend', () => this.loadInBounds());
+  }
+
+  loadCareLocations() {
+    this.careLocationService.triggerSendFromOrgApp().subscribe({
+      next: () => {
+        console.log('📤 Org app poslala lokacije, sada povlačimo iz naše baze...');
+
+        this.careLocationService.getCareLocations().subscribe({
+          next: (data) => {
+            this.careLocations = data;
+            this.showCareLocationsOnMap();
+          },
+          error: (err) => console.error('Error loading care locations from backend', err),
+        });
+      },
+      error: (err) => console.error('Error triggering org app send', err),
+    });
+  }
+
+  showCareLocationsOnMap() {
+    if (!this.map) return;
+
+    this.careLocations.forEach((loc) => {
+      const marker = L.circleMarker([loc.latitude, loc.longitude], {
+        radius: 6,
+        color: 'red',
+        fillColor: 'red',
+        fillOpacity: 0.8,
+      }).addTo(this.map);
+
+      marker.bindTooltip(loc.name, { permanent: false, direction: 'top' });
+    });
   }
 
   private centerOnProfileThenLoad() {
