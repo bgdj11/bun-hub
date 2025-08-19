@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -13,11 +14,13 @@ import java.time.Instant;
 @Setter
 @Entity
 @Table(name = "comments")
+@Cacheable
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    private Long id; // Koristimo Long za konzistentnost sa Like entitetom
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -35,5 +38,5 @@ public class Comment {
 
     @NotNull
     @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt = Instant.now(); // Inicijalizacija vremena kreiranja
+    private Instant createdAt = Instant.now();
 }

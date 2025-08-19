@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -14,6 +14,8 @@ import java.time.Instant;
 @Setter
 @Entity
 @Table(name = "likes")
+@Cacheable
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Like {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,5 +34,5 @@ public class Like {
 
     @NotNull
     @Column(name = "liked_at", nullable = false, updatable = false)
-    private Instant likedAt = Instant.now(); // Inicijalizacija datuma kreiranja
+    private Instant likedAt = Instant.now();
 }

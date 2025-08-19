@@ -197,6 +197,29 @@
             <version>2.15.2</version> <!-- Najnovija verzija -->
         </dependency>
 
+        <!-- JCache API (JSR-107) -->
+        <dependency>
+            <groupId>javax.cache</groupId>
+            <artifactId>cache-api</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+
+        <!-- Ehcache 3 JCache provider -->
+        <dependency>
+            <groupId>org.ehcache</groupId>
+            <artifactId>ehcache</artifactId>
+            <version>3.10.8</version>
+        </dependency>
+
+        <!-- Spring Boot cache starter -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+
+
+
+
     </dependencies>
 
     <build>
