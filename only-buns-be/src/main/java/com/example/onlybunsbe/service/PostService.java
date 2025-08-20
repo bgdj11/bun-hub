@@ -4,6 +4,7 @@ import com.example.onlybunsbe.DTO.CommentDTO;
 import com.example.onlybunsbe.DTO.ImageDTO;
 import com.example.onlybunsbe.DTO.LocationDTO;
 import com.example.onlybunsbe.DTO.PostDTO;
+import com.example.onlybunsbe.infrastructure.messaging.CustomQueueClient;
 import com.example.onlybunsbe.model.*;
 import com.example.onlybunsbe.infrastructure.messaging.RabbitMQPublisher;
 import com.example.onlybunsbe.model.Comment;
@@ -24,10 +25,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -44,6 +42,7 @@ public class PostService {
     private FollowRepository followRepository;
     private final RabbitMQPublisher rabbitMQPublisher; // Dodato
     private final TrendsService trendsService;
+    private final CustomQueueClient customQueueClient;
     @Transactional
     public Optional<PostDTO> getPostById(Long id) {
         return postRepository.findById(id).map(postMapper::toPostDTO);
@@ -221,6 +220,13 @@ public class PostService {
 
         post.setEligibleForAd(true);
         Post updatedPost = postRepository.save(post);
+
+
+        customQueueClient.sendMessage("ad_posts", Map.of(
+                "description", post.getDescription(),
+                "username", post.getUser().getUsername(),
+                "publishTime", post.getCreatedAt().toString()
+        ));
 
         rabbitMQPublisher.sendPostMessage(
                 post.getDescription(),

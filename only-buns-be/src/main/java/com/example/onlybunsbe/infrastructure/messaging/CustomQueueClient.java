@@ -2,6 +2,9 @@ package com.example.onlybunsbe.infrastructure.messaging;
 
 import com.example.onlybunsbe.DTO.PetCareLocationDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -26,5 +29,22 @@ public class CustomQueueClient {
             }
         }
         return null;
+    }
+
+    public void sendMessage(String queueName, Object payload) {
+        try {
+            String json = objectMapper.writeValueAsString(payload);
+
+            String url = String.format("%s/queue/%s/send", baseUrl, queueName);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<String> entity = new HttpEntity<>(json, headers);
+
+            restTemplate.postForEntity(url, entity, String.class);
+            System.out.println("📤 Poslata poruka u queue '" + queueName + "': " + json);
+
+        } catch (Exception e) {
+            throw new RuntimeException("❌ Neuspešno slanje u queue " + queueName, e);
+        }
     }
 }
