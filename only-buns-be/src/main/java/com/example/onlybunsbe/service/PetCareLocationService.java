@@ -16,7 +16,8 @@ public class PetCareLocationService {
     }
 
     public PetCareLocation save(PetCareLocation location) {
-        return repository.save(location);
+        return repository.findByExternalId(location.getExternalId())
+                .orElseGet(() -> repository.save(location));
     }
 
     public List<PetCareLocation> findAll() {

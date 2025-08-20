@@ -88,13 +88,13 @@ export class AuthService {
       .get(`http://localhost:8080/api/user/${userId}`)
       .pipe(
         map((user) => {
-          if (!user || !user.role || !user.role.name) {
+          if (!user || !user.role ) {
             console.log(
               'Uloga nije pronađena ili je prazna, postavljam na prazan string'
             );
             this.userRole = ''; // Prazan string ako nema uloge
           } else {
-            this.userRole = user.role.name; // Sačuvaj pravu ulogu
+            this.userRole = user.role; // Sačuvaj pravu ulogu
           }
           console.log(this.userRole);
           return this.userRole;
