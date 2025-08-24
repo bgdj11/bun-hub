@@ -16,7 +16,7 @@ public class CustomQueueClient {
     @Value("${queue.exchange:ads}")
     private String exchange;
 
-    @Value("${queue.name:ads-agency-web}")
+    @Value("${queue.name:ads-agency-web-2}")
     private String queueName;
 
     /** Pozovi na startup: samoregistracija/bind na exchange. Idempotentno. */

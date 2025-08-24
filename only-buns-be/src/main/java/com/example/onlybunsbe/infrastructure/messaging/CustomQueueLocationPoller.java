@@ -20,20 +20,25 @@ public class CustomQueueLocationPoller {
     // svakih 5 sekundi proverava queue
     @Scheduled(fixedDelay = 5000)
     public void pollQueue() {
-        PetCareLocationDTO dto = queueClient.receiveLocation();
-        if (dto != null) {
-            PetCareLocation loc = new PetCareLocation();
-            loc.setExternalId(dto.getId());
-            loc.setName(dto.getName());
-            loc.setCountry(dto.getCountry());
-            loc.setCity(dto.getCity());
-            loc.setAddress(dto.getAddress());
-            loc.setNumber(dto.getNumber());
-            loc.setLatitude(dto.getLatitude());
-            loc.setLongitude(dto.getLongitude());
+        try {
+            PetCareLocationDTO dto = queueClient.receiveLocation();
+            if (dto != null) {
+                PetCareLocation loc = new PetCareLocation();
+                loc.setExternalId(dto.getId());
+                loc.setName(dto.getName());
+                loc.setCountry(dto.getCountry());
+                loc.setCity(dto.getCity());
+                loc.setAddress(dto.getAddress());
+                loc.setNumber(dto.getNumber());
+                loc.setLatitude(dto.getLatitude());
+                loc.setLongitude(dto.getLongitude());
 
-            service.save(loc);
-            System.out.println("✅ Primljena care lokacija (custom-queue): " + dto.getName());
+                service.save(loc);
+                System.out.println("✅ Primljena care lokacija (custom-queue): " + dto.getName());
+            }
+        }catch (Exception e){
+        }
+
         }
     }
-}
+

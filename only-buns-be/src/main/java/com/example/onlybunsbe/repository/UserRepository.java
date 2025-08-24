@@ -1,7 +1,9 @@
 package com.example.onlybunsbe.repository;
 
 import com.example.onlybunsbe.model.User;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -25,6 +27,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "FROM Comment c " +
             "WHERE c.user.id NOT IN (SELECT p.user.id FROM Post p)")
     long countWithOnlyComments();
+
+    long countByUsername(String username);
+    void deleteByUsername(String username);
 
     @Query("SELECT u FROM User u JOIN u.following f WHERE f.id = :userId")
     List<User> findFollowers(@Param("userId") Long userId);

@@ -47,4 +47,22 @@ public class CustomQueueClient {
             throw new RuntimeException("❌ Neuspešno slanje u queue " + queueName, e);
         }
     }
+
+    public void bindQueueToExchange(String exchange, String queueName) {
+        String url = String.format("%s/exchange/%s/bind/%s", baseUrl, exchange, queueName);
+        restTemplate.put(url, null);
+    }
+
+    public void publishToExchange(String exchange, Object payload) {
+        try {
+            String json = objectMapper.writeValueAsString(payload);
+            String url = String.format("%s/exchange/%s/publish", baseUrl, exchange);
+            HttpHeaders h = new HttpHeaders();
+            h.setContentType(MediaType.APPLICATION_JSON);
+            restTemplate.postForEntity(url, new HttpEntity<>(json, h), String.class);
+            System.out.println("📣 Fanout publish na exchange '" + exchange + "': " + json);
+        } catch (Exception e) {
+            throw new RuntimeException("❌ Neuspešno fanout publish na exchange " + exchange, e);
+        }
+    }
 }

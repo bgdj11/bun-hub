@@ -20,7 +20,7 @@ public class AdPostPoller {
         String message = queueClient.receiveMessage();
         if (message != null) {
             System.out.println("✅ Primljena poruka (fanout): " + message);
-
+            // ovde radiš parse i dalje šta treba
         }
     }
 }

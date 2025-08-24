@@ -222,17 +222,11 @@ public class PostService {
         Post updatedPost = postRepository.save(post);
 
 
-        customQueueClient.sendMessage("ad_posts", Map.of(
+        customQueueClient.publishToExchange("ads", Map.of(
                 "description", post.getDescription(),
                 "username", post.getUser().getUsername(),
                 "publishTime", post.getCreatedAt().toString()
         ));
-
-        rabbitMQPublisher.sendPostMessage(
-                post.getDescription(),
-                post.getUser().getUsername(),
-                post.getCreatedAt().toString()
-        );
 
         return postMapper.toPostDTO(updatedPost);
     }

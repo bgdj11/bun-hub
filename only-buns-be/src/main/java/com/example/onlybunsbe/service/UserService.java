@@ -46,6 +46,11 @@ public class UserService {
         return userRepository.findByUsername(username);
     }
 
+    @Transactional
+    public void flush() {
+        userRepository.flush();
+    }
+
     public User findByEmail(String email) throws UsernameNotFoundException {
         return userRepository.findByEmail(email);
     }
