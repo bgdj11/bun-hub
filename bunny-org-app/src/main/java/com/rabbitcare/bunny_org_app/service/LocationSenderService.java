@@ -47,7 +47,7 @@ public class LocationSenderService {
             // 2) Novi CustomQueue servis (JSON)
             try {
                 String json = objectMapper.writeValueAsString(dto);
-                // queueClient.createQueue("rabbit_locations");
+                queueClient.createQueue("rabbit_locations");
                 queueClient.sendJson(RabbitConfig.QUEUE, json);
                 System.out.println("📤 Poslata lokacija (custom-queue): " + dto.getName()
                         + " (" + dto.getLatitude() + ", " + dto.getLongitude() + ")");

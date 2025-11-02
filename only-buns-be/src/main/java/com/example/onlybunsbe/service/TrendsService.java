@@ -26,10 +26,11 @@ public class TrendsService {
     private final LikeRepository likeRepository;
     private final PostMapper postMapper;
 
-    private static final String CACHE_SUMMARY = "trends:summary";
-    private static final String CACHE_TOP_7D = "trends:topPosts7d";
-    private static final String CACHE_TOP_ALL = "trends:topPostsAll";
-    private static final String CACHE_TOP_LIKERS_7D = "trends:topLikers7d";
+    private static final String CACHE_SUMMARY = "trends.summary";
+    private static final String CACHE_TOP_7D = "trends.topPosts7d";
+    private static final String CACHE_TOP_ALL = "trends.topPostsAll";
+    private static final String CACHE_TOP_LIKERS_7D = "trends.topLikers7d";
+
 
     @Transactional(readOnly = true)
     @Cacheable(cacheNames = CACHE_SUMMARY, key = "'summary'")
@@ -93,5 +94,6 @@ public class TrendsService {
 
     // invalidacija keša kad promenimo stanje
     @CacheEvict(cacheNames = {CACHE_SUMMARY, CACHE_TOP_7D, CACHE_TOP_ALL, CACHE_TOP_LIKERS_7D}, allEntries = true)
-    public void invalidateTrendsCache() {}
+    public void invalidateTrendsCache() {
+    }
 }

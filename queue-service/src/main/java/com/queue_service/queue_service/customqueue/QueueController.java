@@ -56,7 +56,7 @@ public class QueueController {
     public ResponseEntity<?> receive(@PathVariable String name) {
         String msg = queue.receive(name);
         if (msg == null){
-            System.out.println("⚠️ [QueueService] '" + name + "' je prazan.");
+           // System.out.println("⚠️ [QueueService] '" + name + "' je prazan.");
             return ResponseEntity.noContent().build();
         }
         System.out.println("📤 [QueueService] vraćam iz '" + name + "': " + msg);

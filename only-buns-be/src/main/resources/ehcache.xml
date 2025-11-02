@@ -15,4 +15,10 @@
     <cache alias="com.example.onlybunsbe.model.Post" uses-template="default"/>
     <cache alias="com.example.onlybunsbe.model.Comment" uses-template="default"/>
     <cache alias="com.example.onlybunsbe.model.Location" uses-template="default"/>
+
+    <cache alias="trends.summary" uses-template="default"/>
+    <cache alias="trends.topPosts7d" uses-template="default"/>
+    <cache alias="trends.topPostsAll" uses-template="default"/>
+    <cache alias="trends.topLikers7d" uses-template="default"/>
+
 </config>
