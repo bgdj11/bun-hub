@@ -1,4 +1,4 @@
-# BunHub - Distributed Social Platform for Rabbit Enthusiasts 🐰
+# BunHub - Distributed Social Platform for Rabbit Enthusiasts
 
 <div align="center">
 
@@ -14,7 +14,7 @@
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Overview](#overview)
 - [Key Features](#key-features)
@@ -30,7 +30,7 @@
 
 ---
 
-## 🎯 Overview
+## Overview
 
 **BunHub** is an enterprise-grade social media platform designed for rabbit enthusiasts to share photos, connect with other owners, and access care resources. The project demonstrates advanced concepts in distributed systems, including:
 
@@ -46,9 +46,9 @@
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-### 👥 User Management
+### User Management
 - **Multi-tier Authentication System**
   - Email-based registration with account activation
   - JWT token authentication with role-based access control (RBAC)
@@ -60,7 +60,7 @@
   - Registered users: Full social features (post, comment, like, follow)
   - Administrators: User management, content moderation, analytics
 
-### 📸 Content Management
+### Content Management
 - **Post Creation & Management**
   - Upload rabbit photos with descriptions
   - Geolocation tagging (map selection or address input)
@@ -73,14 +73,14 @@
   - Follow users (rate-limited: 50 follows/minute)
   - Real-time follower count updates
 
-### 🗺️ Geospatial Features
+### Geospatial Features
 - **Interactive Map Interface**
   - Display nearby posts on map (centered on user's address)
   - Care location markers (shelters, veterinarians)
   - Clickable markers with post previews
   - Location caching for performance
 
-### 💬 Real-time Chat
+### Real-time Chat
 - **WebSocket-based Messaging**
   - Direct messaging between users
   - Group chat creation with admin controls
@@ -88,7 +88,7 @@
   - View last 10 messages when joining group
   - Real-time message delivery
 
-### 📊 Analytics & Trends
+### Analytics & Trends
 - **User Analytics Dashboard**
   - Total post count network-wide
   - Monthly post statistics
@@ -104,33 +104,33 @@
   - User search with pagination (5 users per page)
   - Sort by followers, email, post count
 
-### 🔔 Automated Notifications
+### Automated Notifications
 - **Email Notification System**
   - Inactive user notifications (7 days without login)
   - Weekly statistics summary
   - Account activation emails
   - Scheduled via Cron jobs
 
-### 🧹 Background Maintenance
+### Background Maintenance
 - **Automated Cleanup & Optimization**
   - Monthly deletion of unactivated accounts (last day of month)
   - Daily image compression (images older than 30 days)
   - Scheduled task execution with Spring Scheduler
 
-### 🔗 Message Queue Integration
+### Message Queue Integration
 - **RabbitMQ Implementation**
   - **Direct Queue**: Care location data from partner organization
   - **Fanout Exchange**: Post promotions to advertising agencies
   - Custom message queue implementation for extensibility
 
-### 📈 Monitoring & Observability
+### Monitoring & Observability
 - **Prometheus + Grafana Integration**
   - Average HTTP request duration for post creation (24h window)
   - CPU utilization tracking
   - Active user count (24h window)
   - Custom metrics exporters
 
-### 🛡️ Security & Performance
+### Security & Performance
 - **Rate Limiting**
   - Login attempts: 5 per minute per IP
   - Comments: 60 per hour per user
@@ -161,7 +161,7 @@
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 ### Backend
 - **Framework**: Spring Boot 3.x
@@ -193,7 +193,7 @@
 
 ---
 
-## 🚀 Advanced Features
+## Advanced Features
 
 ### 1. Bloom Filter for Username Checks
 - **Purpose**: Optimize username existence queries
@@ -246,7 +246,7 @@
 
 ---
 
-## 🏁 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -398,7 +398,7 @@ Once the backend is running, access the interactive API documentation:
 
 ---
 
-## 📊 Monitoring & Analytics
+## Monitoring & Analytics
 
 ### Prometheus Metrics
 
@@ -427,7 +427,7 @@ Once the backend is running, access the interactive API documentation:
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ### Run Backend Tests
 
@@ -454,18 +454,11 @@ cd only-buns-be
 ---
 
 
-## 🤝 Acknowledgments
+## Acknowledgments
 
 - University of Novi Sad, Faculty of Technical Sciences
 - Course: Internet Software Architectures (ISA)
 - Semester: Fall 2024/2025
 
----
 
-<div align="center">
 
-**Built with ❤️ and lots of ☕ by rabbit enthusiasts**
-
-🐰 **BunHub - Where every bunny has a story** 🐰
-
-</div>
