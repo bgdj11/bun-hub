@@ -353,7 +353,7 @@ grafana-server
 
 ---
 
-## 📚 API Documentation
+## API Documentation
 
 Once the backend is running, access the interactive API documentation:
 
